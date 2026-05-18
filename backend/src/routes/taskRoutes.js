@@ -7,13 +7,14 @@ import {
   updateTask,
   deleteTask,
   deleteMultipleTasks,
+  getTaskStats,
 } from "../controllers/taskController.js";
 
 const router = express.Router();
 
-// verifyToken is applied to every route in this file
 router.use(verifyToken);
 
+router.get("/task-stats", getTaskStats);
 router.post("/add-task", addTask);
 router.get("/task-list", getTaskList);
 router.get("/task/:id", getTaskById);

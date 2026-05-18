@@ -1,39 +1,69 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const SignUp = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
+
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      return;
+    }
+
+    if (formData.password.trim().length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
     setLoading(true);
+
     try {
       const response = await fetch(`${BASE_URL}/auth/signup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+        }),
       });
+
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Account created! Please log in.");
-        navigate("/login");
+        toast.success("Account created! Please verify your email.");
+        navigate("/login", { replace: true });
       } else {
         toast.error(data.message || "Signup failed.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong!");
     } finally {
       setLoading(false);
@@ -43,20 +73,29 @@ const SignUp = () => {
   return (
     <div
       className="d-flex justify-content-center align-items-center"
-      style={{ minHeight: "90vh", backgroundColor: "#f8f9fa" }}
+      style={{
+        minHeight: "90vh",
+        backgroundColor: "#f8f9fa",
+      }}
     >
       <div
         className="card shadow-lg p-4 border-0"
-        style={{ width: "100%", maxWidth: "460px", borderRadius: "20px" }}
+        style={{
+          width: "100%",
+          maxWidth: "460px",
+          borderRadius: "20px",
+        }}
       >
         <h2 className="text-center mb-1 fw-bold text-primary">
           Create Account
         </h2>
+
         <p className="text-center text-muted mb-4">Sign up to get started</p>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className="form-label fw-semibold">Full Name</label>
+
             <input
               type="text"
               name="name"
@@ -70,6 +109,7 @@ const SignUp = () => {
 
           <div className="mb-3">
             <label className="form-label fw-semibold">Email Address</label>
+
             <input
               type="email"
               name="email"
@@ -83,6 +123,7 @@ const SignUp = () => {
 
           <div className="mb-4">
             <label className="form-label fw-semibold">Password</label>
+
             <input
               type="password"
               name="password"

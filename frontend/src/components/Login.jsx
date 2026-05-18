@@ -31,10 +31,14 @@ const Login = () => {
         toast.success(`Welcome back, ${data.user.name}! 👋`);
         navigate("/");
       } else {
-        toast.error(data.message || "Login failed.");
+        if (data.message === "Please verify your email before logging in.") {
+          toast.error("Email not verified. Please verify first.");
+        } else {
+          toast.error(data.message || "Login failed.");
+        }
       }
     } catch (error) {
-      toast.error("Something went wrong!");
+      toast.error(error.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
@@ -65,7 +69,6 @@ const Login = () => {
               required
             />
           </div>
-
           <div className="mb-4">
             <label className="form-label fw-semibold">Password</label>
             <input
@@ -78,7 +81,11 @@ const Login = () => {
               required
             />
           </div>
-
+          <div className="text-end mb-4">
+            <Link to="/forgot-password" className="text-primary small">
+              Forgot password?
+            </Link>
+          </div>
           <button
             type="submit"
             className="btn btn-primary w-100 fw-semibold"

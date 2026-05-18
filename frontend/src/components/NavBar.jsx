@@ -4,14 +4,29 @@ import toast from "react-hot-toast";
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  let user = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("user"));
+  } catch {
+    user = null;
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
     toast.success("Logged out successfully!");
-    navigate("/login");
+
+    navigate("/login", { replace: true });
   };
+
+  const avatarSrc =
+    user?.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      user?.name || "U",
+    )}&background=3b82f6&color=fff&size=32`;
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow">
@@ -37,21 +52,43 @@ const NavBar = () => {
             {user ? (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/">
-                    List
+                  <Link className="nav-link" to="/dashboard">
+                    Dashboard
                   </Link>
                 </li>
+
+                <li className="nav-item">
+                  <Link className="nav-link" to="/">
+                    Tasks
+                  </Link>
+                </li>
+
                 <li className="nav-item">
                   <Link className="nav-link" to="/add-task">
                     Add Task
                   </Link>
                 </li>
+
                 <li className="nav-item ms-2">
-                  <span className="navbar-text text-white me-3">
-                    👋 {user.name}
-                  </span>
+                  <Link
+                    to="/profile"
+                    className="d-flex align-items-center text-decoration-none"
+                  >
+                    <img
+                      src={avatarSrc}
+                      alt="avatar"
+                      className="rounded-circle border border-2 border-white me-2"
+                      style={{
+                        width: 34,
+                        height: 34,
+                        objectFit: "cover",
+                      }}
+                    />
+                    <span className="text-white fw-semibold">{user.name}</span>
+                  </Link>
                 </li>
-                <li className="nav-item">
+
+                <li className="nav-item ms-2">
                   <button
                     className="btn btn-outline-light btn-sm fw-semibold"
                     onClick={handleLogout}
@@ -67,6 +104,7 @@ const NavBar = () => {
                     Login
                   </Link>
                 </li>
+
                 <li className="nav-item">
                   <Link className="nav-link" to="/signup">
                     Sign Up
