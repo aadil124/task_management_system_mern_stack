@@ -1,22 +1,42 @@
+import toast from "react-hot-toast";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const fetchWithAuth = (url, options = {}) => {
+const logoutUser = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  toast.error("Session expired. Please log in again.");
+
+  setTimeout(() => {
+    window.location.href = "/login";
+  }, 1000);
+};
+
+const fetchWithAuth = async (url, options = {}) => {
   const token = localStorage.getItem("token");
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    ...options.headers,
-  };
+  const response = await fetch(`${BASE_URL}${url}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...options.headers,
+    },
+  });
 
-  // only set JSON content type if body is NOT FormData
-  if (!(options.body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
+  if (response.status === 401) {
+    try {
+      const data = await response.clone().json();
+
+      if (data.expired || data.message === "Invalid token") {
+        logoutUser();
+      }
+    } catch {
+      logoutUser();
+    }
   }
 
-  return fetch(`${BASE_URL}${url}`, {
-    ...options,
-    headers,
-  });
+  return response;
 };
 
 export default fetchWithAuth;

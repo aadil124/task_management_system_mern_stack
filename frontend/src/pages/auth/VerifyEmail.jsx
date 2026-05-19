@@ -28,6 +28,9 @@ const VerifyEmail = () => {
         if (data.success) {
           setStatus("success");
           setMessage(data.message);
+        } else if (data.expired) {
+          setStatus("expired");
+          setMessage(data.message);
         } else {
           setStatus("error");
           setMessage(data.message || "Verification failed.");
@@ -48,7 +51,7 @@ const VerifyEmail = () => {
     >
       <div
         className="card shadow border-0 p-5 text-center"
-        style={{ maxWidth: "420px", borderRadius: "20px" }}
+        style={{ maxWidth: "440px", borderRadius: "20px" }}
       >
         {status === "verifying" && (
           <>
@@ -68,6 +71,23 @@ const VerifyEmail = () => {
               onClick={() => navigate("/login", { replace: true })}
             >
               Go to Login
+            </button>
+          </>
+        )}
+
+        {status === "expired" && (
+          <>
+            <div style={{ fontSize: "4rem" }}>⏰</div>
+            <h4 className="fw-bold text-warning mt-2">
+              Verification Link Expired
+            </h4>
+            <p className="text-muted">{message}</p>
+
+            <button
+              className="btn btn-warning mt-2"
+              onClick={() => navigate("/login", { replace: true })}
+            >
+              Go to Login & Resend Email
             </button>
           </>
         )}

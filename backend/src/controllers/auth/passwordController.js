@@ -136,9 +136,17 @@ export const resetPassword = async (req, resp) => {
   } catch (error) {
     console.log("RESET PASSWORD ERROR:", error);
 
+    if (error.name === "TokenExpiredError") {
+      return resp.status(400).send({
+        success: false,
+        message: "Reset password link has expired.",
+        expired: true,
+      });
+    }
+
     return resp.status(400).send({
       success: false,
-      message: "Invalid or expired reset link",
+      message: "Invalid reset link",
     });
   }
 };

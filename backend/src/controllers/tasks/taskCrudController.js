@@ -15,6 +15,10 @@ const sanitizeSubtasks = (subtasks = []) => {
     }));
 };
 
+const hasIncompleteSubtasks = (subtasks = []) => {
+  return subtasks.some((subtask) => !subtask.completed);
+};
+
 // ADD TASK
 export const addTask = async (req, resp) => {
   try {
@@ -52,6 +56,19 @@ export const addTask = async (req, resp) => {
       });
     }
 
+    const sanitizedSubtasks = sanitizeSubtasks(subtasks);
+
+    if (
+      status === "completed" &&
+      sanitizedSubtasks.length > 0 &&
+      hasIncompleteSubtasks(sanitizedSubtasks)
+    ) {
+      return resp.status(400).send({
+        success: false,
+        message: "Complete all subtasks before marking task as completed",
+      });
+    }
+
     const db = await connection();
     const collection = db.collection(collections.TODOS);
 
@@ -63,7 +80,7 @@ export const addTask = async (req, resp) => {
       status,
       dueDate: dueDate ? new Date(dueDate) : null,
       tags: Array.isArray(tags) ? tags : [],
-      subtasks: sanitizeSubtasks(subtasks),
+      subtasks: sanitizedSubtasks,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -209,6 +226,7 @@ export const getTaskById = async (req, resp) => {
 export const updateTask = async (req, resp) => {
   try {
     const { id } = req.params;
+
     const {
       title,
       description = "",
@@ -250,6 +268,19 @@ export const updateTask = async (req, resp) => {
       });
     }
 
+    const sanitizedSubtasks = sanitizeSubtasks(subtasks);
+
+    if (
+      status === "completed" &&
+      sanitizedSubtasks.length > 0 &&
+      hasIncompleteSubtasks(sanitizedSubtasks)
+    ) {
+      return resp.status(400).send({
+        success: false,
+        message: "Complete all subtasks before marking task as completed",
+      });
+    }
+
     const db = await connection();
     const collection = db.collection(collections.TODOS);
 
@@ -266,7 +297,7 @@ export const updateTask = async (req, resp) => {
           status,
           dueDate: dueDate ? new Date(dueDate) : null,
           tags: Array.isArray(tags) ? tags : [],
-          subtasks: sanitizeSubtasks(subtasks),
+          subtasks: sanitizedSubtasks,
           updatedAt: new Date(),
         },
       },

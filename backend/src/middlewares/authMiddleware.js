@@ -4,28 +4,14 @@ const verifyToken = (req, resp, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return resp.status(401).send({
         success: false,
-        message: "Authorization token missing",
-      });
-    }
-
-    if (!authHeader.startsWith("Bearer ")) {
-      return resp.status(401).send({
-        success: false,
-        message: "Invalid authorization format",
+        message: "Authentication token missing",
       });
     }
 
     const token = authHeader.split(" ")[1];
-
-    if (!token) {
-      return resp.status(401).send({
-        success: false,
-        message: "Token missing",
-      });
-    }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -36,7 +22,8 @@ const verifyToken = (req, resp, next) => {
     if (error.name === "TokenExpiredError") {
       return resp.status(401).send({
         success: false,
-        message: "Session expired. Please login again.",
+        message: "Token expired",
+        expired: true,
       });
     }
 

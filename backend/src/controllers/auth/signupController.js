@@ -164,9 +164,17 @@ export const verifyEmail = async (req, resp) => {
   } catch (error) {
     console.log("VERIFY EMAIL ERROR:", error);
 
+    if (error.name === "TokenExpiredError") {
+      return resp.status(400).send({
+        success: false,
+        message: "Verification link has expired. Please request a new one.",
+        expired: true,
+      });
+    }
+
     return resp.status(400).send({
       success: false,
-      message: "Invalid or expired verification link",
+      message: "Invalid verification link",
     });
   }
 };

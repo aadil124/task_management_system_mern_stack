@@ -55,17 +55,27 @@ const TaskCard = ({ task, selectedTasks, onSelectTask, onEdit, onDelete }) => {
 
   const overdue = isOverdue(task);
 
+  const subtasks = task.subtasks || [];
+  const completedSubtasks = subtasks.filter(
+    (subtask) => subtask.completed,
+  ).length;
+
+  const progressPercent =
+    subtasks.length > 0
+      ? Math.round((completedSubtasks / subtasks.length) * 100)
+      : 0;
+
   return (
     <div className="col-12 mb-4">
       <div
         className="card border-0 shadow-sm h-100"
         style={{
           borderRadius: "20px",
-          transition: "all 0.25s ease",
           overflow: "hidden",
+          transition: "all 0.25s ease",
         }}
       >
-        {/* TOP BORDER */}
+        {/* PRIORITY TOP BAR */}
         <div
           style={{
             height: "6px",
@@ -81,7 +91,7 @@ const TaskCard = ({ task, selectedTasks, onSelectTask, onEdit, onDelete }) => {
         <div className="card-body p-4">
           {/* HEADER */}
           <div className="d-flex justify-content-between align-items-start mb-3">
-            <div className="d-flex align-items-start gap-3">
+            <div className="d-flex align-items-start gap-3 w-100">
               <input
                 type="checkbox"
                 className="form-check-input mt-1"
@@ -89,7 +99,7 @@ const TaskCard = ({ task, selectedTasks, onSelectTask, onEdit, onDelete }) => {
                 onChange={() => onSelectTask(task._id)}
               />
 
-              <div>
+              <div className="w-100">
                 <h5 className="fw-bold mb-1">{task.title}</h5>
 
                 <p className="text-muted mb-0">
@@ -100,7 +110,7 @@ const TaskCard = ({ task, selectedTasks, onSelectTask, onEdit, onDelete }) => {
           </div>
 
           {/* BADGES */}
-          <div className="d-flex flex-wrap gap-2 mb-4">
+          <div className="d-flex flex-wrap gap-2 mb-3">
             <span
               className={`badge px-3 py-2 rounded-pill fw-semibold ${priority.badge}`}
             >
@@ -120,13 +130,42 @@ const TaskCard = ({ task, selectedTasks, onSelectTask, onEdit, onDelete }) => {
             )}
           </div>
 
+          {/* SUBTASK PROGRESS */}
+          {subtasks.length > 0 && (
+            <div className="mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <small className="fw-semibold text-muted">
+                  Checklist Progress
+                </small>
+
+                <small className="fw-bold text-primary">
+                  {completedSubtasks}/{subtasks.length}
+                </small>
+              </div>
+
+              <div
+                className="progress"
+                style={{
+                  height: "10px",
+                  borderRadius: "10px",
+                }}
+              >
+                <div
+                  className="progress-bar bg-primary"
+                  style={{
+                    width: `${progressPercent}%`,
+                    transition: "width 0.4s ease",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* FOOTER */}
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div>
-              <small className="text-muted fw-semibold">
-                📅 Due: {formatDate(task.dueDate)}
-              </small>
-            </div>
+            <small className="text-muted fw-semibold">
+              📅 Due: {formatDate(task.dueDate)}
+            </small>
 
             <div className="d-flex gap-2">
               <button
