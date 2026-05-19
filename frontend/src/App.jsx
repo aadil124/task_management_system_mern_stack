@@ -1,29 +1,36 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import NavBar from "./components/NavBar";
-import AddTask from "./components/AddTask";
-import List from "./components/List";
-import EditTask from "./components/EditTask";
-import SignUp from "./components/SignUp";
-import Login from "./components/Login";
-import NotFound from "./components/NotFound";
-import ProtectedRoute from "./components/ProtectedRoute";
-import PublicRoute from "./components/PublicRoute";
 import { Toaster } from "react-hot-toast";
-import Dashboard from "./components/Dashboard";
-import VerifyEmail from "./components/VerifyEmail";
-import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./components/ResetPassword";
-import Profile from "./components/Profile";
+
+import NavBar from "./components/common/NavBar";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import PublicRoute from "./components/common/PublicRoute";
+
+import Login from "./pages/auth/Login";
+import SignUp from "./pages/auth/SignUp";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import VerifyEmail from "./pages/auth/VerifyEmail";
+
+import List from "./pages/tasks/List";
+import AddTask from "./pages/tasks/AddTask";
+import EditTask from "./pages/tasks/EditTask";
+import Dashboard from "./pages/tasks/Dashboard";
+
+import Profile from "./pages/user/Profile";
+
+import NotFound from "./components/NotFound";
 
 function App() {
   return (
     <>
       <Toaster position="top-right" />
+
       <NavBar />
+
       <div className="container mt-4">
         <Routes>
-          {/* Public routes */}
+          {/* PUBLIC ROUTES */}
           <Route
             path="/login"
             element={
@@ -32,6 +39,7 @@ function App() {
               </PublicRoute>
             }
           />
+
           <Route
             path="/signup"
             element={
@@ -40,7 +48,7 @@ function App() {
               </PublicRoute>
             }
           />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+
           <Route
             path="/forgot-password"
             element={
@@ -49,6 +57,7 @@ function App() {
               </PublicRoute>
             }
           />
+
           <Route
             path="/reset-password"
             element={
@@ -58,13 +67,14 @@ function App() {
             }
           />
 
-          {/* Protected routes */}
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
+          {/* PROTECTED ROUTES */}
           <Route
-            path="/profile"
+            path="/"
             element={
               <ProtectedRoute>
-                <Profile />
+                <List />
               </ProtectedRoute>
             }
           />
@@ -79,14 +89,6 @@ function App() {
           />
 
           <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <List />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/add-task"
             element={
               <ProtectedRoute>
@@ -94,6 +96,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/edit-task/:id"
             element={
@@ -103,7 +106,16 @@ function App() {
             }
           />
 
-          {/* 404 Not found*/}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

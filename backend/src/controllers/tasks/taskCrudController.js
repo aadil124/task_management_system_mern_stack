@@ -1,34 +1,74 @@
 import { ObjectId } from "mongodb";
-import { connection, collections } from "../config/db.js";
+import crypto from "crypto";
+import { connection, collections } from "../../config/db.js";
+
+const sanitizeSubtasks = (subtasks = []) => {
+  if (!Array.isArray(subtasks)) return [];
+
+  return subtasks
+    .filter((subtask) => subtask?.title?.trim())
+    .map((subtask) => ({
+      id: subtask.id || crypto.randomUUID(),
+      title: subtask.title.trim(),
+      completed: Boolean(subtask.completed),
+      createdAt: subtask.createdAt || new Date(),
+    }));
+};
 
 // ADD TASK
 export const addTask = async (req, resp) => {
   try {
-    const { title, description, priority, status, dueDate, tags } = req.body;
+    const {
+      title,
+      description = "",
+      priority = "medium",
+      status = "todo",
+      dueDate = null,
+      tags = [],
+      subtasks = [],
+    } = req.body;
 
-    if (!title) {
+    if (!title?.trim()) {
       return resp.status(400).send({
         success: false,
-        message: "Title is required",
+        message: "Task title is required",
+      });
+    }
+
+    const allowedPriority = ["low", "medium", "high"];
+    const allowedStatus = ["todo", "inprogress", "completed"];
+
+    if (!allowedPriority.includes(priority)) {
+      return resp.status(400).send({
+        success: false,
+        message: "Invalid priority",
+      });
+    }
+
+    if (!allowedStatus.includes(status)) {
+      return resp.status(400).send({
+        success: false,
+        message: "Invalid status",
       });
     }
 
     const db = await connection();
     const collection = db.collection(collections.TODOS);
 
-    const newTask = {
-      title,
-      description: description || "",
-      priority: priority || "medium",
-      status: status || "todo",
+    const task = {
+      userId: req.user.id,
+      title: title.trim(),
+      description: description.trim(),
+      priority,
+      status,
       dueDate: dueDate ? new Date(dueDate) : null,
       tags: Array.isArray(tags) ? tags : [],
-      userId: req.user.id,
+      subtasks: sanitizeSubtasks(subtasks),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    const result = await collection.insertOne(newTask);
+    const result = await collection.insertOne(task);
 
     return resp.status(201).send({
       success: true,
@@ -36,10 +76,11 @@ export const addTask = async (req, resp) => {
       result,
     });
   } catch (error) {
+    console.log("ADD TASK ERROR:", error);
+
     return resp.status(500).send({
       success: false,
-      message: "Internal server error",
-      error: error.message,
+      message: "Failed to create task",
     });
   }
 };
@@ -47,28 +88,32 @@ export const addTask = async (req, resp) => {
 // GET TASK LIST
 export const getTaskList = async (req, resp) => {
   try {
-    const { search, priority, status, sortBy, order } = req.query;
+    const {
+      search = "",
+      priority = "",
+      status = "",
+      sortBy = "createdAt",
+      order = "desc",
+    } = req.query;
 
     const db = await connection();
     const collection = db.collection(collections.TODOS);
 
-    const filter = {
+    const query = {
       userId: req.user.id,
     };
 
-    const escapedSearch = search?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-    if (escapedSearch) {
-      filter.$or = [
+    if (search.trim()) {
+      query.$or = [
         {
           title: {
-            $regex: escapedSearch,
+            $regex: search,
             $options: "i",
           },
         },
         {
           description: {
-            $regex: escapedSearch,
+            $regex: search,
             $options: "i",
           },
         },
@@ -76,11 +121,11 @@ export const getTaskList = async (req, resp) => {
     }
 
     if (priority) {
-      filter.priority = priority;
+      query.priority = priority;
     }
 
     if (status) {
-      filter.status = status;
+      query.status = status;
     }
 
     const allowedSortFields = [
@@ -92,25 +137,29 @@ export const getTaskList = async (req, resp) => {
       "title",
     ];
 
-    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const safeSortBy = allowedSortFields.includes(sortBy)
+      ? sortBy
+      : "createdAt";
 
-    const sortOrder = order === "asc" ? 1 : -1;
+    const safeOrder = order === "asc" ? 1 : -1;
 
     const result = await collection
-      .find(filter)
-      .sort({ [sortField]: sortOrder })
+      .find(query)
+      .sort({
+        [safeSortBy]: safeOrder,
+      })
       .toArray();
 
     return resp.status(200).send({
       success: true,
-      message: "Tasks fetched successfully",
       result,
     });
   } catch (error) {
+    console.log("GET TASK LIST ERROR:", error);
+
     return resp.status(500).send({
       success: false,
-      message: "Internal server error",
-      error: error.message,
+      message: "Failed to fetch tasks",
     });
   }
 };
@@ -144,14 +193,14 @@ export const getTaskById = async (req, resp) => {
 
     return resp.status(200).send({
       success: true,
-      message: "Task fetched successfully",
       result,
     });
   } catch (error) {
+    console.log("GET TASK BY ID ERROR:", error);
+
     return resp.status(500).send({
       success: false,
-      message: "Internal server error",
-      error: error.message,
+      message: "Failed to fetch task",
     });
   }
 };
@@ -160,6 +209,15 @@ export const getTaskById = async (req, resp) => {
 export const updateTask = async (req, resp) => {
   try {
     const { id } = req.params;
+    const {
+      title,
+      description = "",
+      priority,
+      status,
+      dueDate,
+      tags = [],
+      subtasks = [],
+    } = req.body;
 
     if (!ObjectId.isValid(id)) {
       return resp.status(400).send({
@@ -168,14 +226,32 @@ export const updateTask = async (req, resp) => {
       });
     }
 
+    if (!title?.trim()) {
+      return resp.status(400).send({
+        success: false,
+        message: "Task title is required",
+      });
+    }
+
+    const allowedPriority = ["low", "medium", "high"];
+    const allowedStatus = ["todo", "inprogress", "completed"];
+
+    if (!allowedPriority.includes(priority)) {
+      return resp.status(400).send({
+        success: false,
+        message: "Invalid priority",
+      });
+    }
+
+    if (!allowedStatus.includes(status)) {
+      return resp.status(400).send({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
     const db = await connection();
     const collection = db.collection(collections.TODOS);
-
-    const { _id, userId, createdAt, ...fields } = req.body;
-
-    if (fields.dueDate) {
-      fields.dueDate = new Date(fields.dueDate);
-    }
 
     const result = await collection.updateOne(
       {
@@ -184,29 +260,35 @@ export const updateTask = async (req, resp) => {
       },
       {
         $set: {
-          ...fields,
+          title: title.trim(),
+          description: description.trim(),
+          priority,
+          status,
+          dueDate: dueDate ? new Date(dueDate) : null,
+          tags: Array.isArray(tags) ? tags : [],
+          subtasks: sanitizeSubtasks(subtasks),
           updatedAt: new Date(),
         },
       },
     );
 
-    if (result.matchedCount === 0) {
+    if (!result.matchedCount) {
       return resp.status(404).send({
         success: false,
-        message: "Task not found or unauthorized",
+        message: "Task not found",
       });
     }
 
     return resp.status(200).send({
       success: true,
       message: "Task updated successfully",
-      result,
     });
   } catch (error) {
+    console.log("UPDATE TASK ERROR:", error);
+
     return resp.status(500).send({
       success: false,
-      message: "Internal server error",
-      error: error.message,
+      message: "Failed to update task",
     });
   }
 };
@@ -231,33 +313,33 @@ export const deleteTask = async (req, resp) => {
       userId: req.user.id,
     });
 
-    if (result.deletedCount === 0) {
+    if (!result.deletedCount) {
       return resp.status(404).send({
         success: false,
-        message: "Task not found or unauthorized",
+        message: "Task not found",
       });
     }
 
     return resp.status(200).send({
       success: true,
       message: "Task deleted successfully",
-      result,
     });
   } catch (error) {
+    console.log("DELETE TASK ERROR:", error);
+
     return resp.status(500).send({
       success: false,
-      message: "Internal server error",
-      error: error.message,
+      message: "Failed to delete task",
     });
   }
 };
 
-// DELETE MULTIPLE TASKS
+// BULK DELETE
 export const deleteMultipleTasks = async (req, resp) => {
   try {
     const { ids } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    if (!Array.isArray(ids) || !ids.length) {
       return resp.status(400).send({
         success: false,
         message: "No task IDs provided",
@@ -265,13 +347,6 @@ export const deleteMultipleTasks = async (req, resp) => {
     }
 
     const validIds = ids.filter((id) => ObjectId.isValid(id));
-
-    if (!validIds.length) {
-      return resp.status(400).send({
-        success: false,
-        message: "No valid task IDs",
-      });
-    }
 
     const db = await connection();
     const collection = db.collection(collections.TODOS);
@@ -285,69 +360,14 @@ export const deleteMultipleTasks = async (req, resp) => {
 
     return resp.status(200).send({
       success: true,
-      message: `${result.deletedCount} task(s) deleted successfully`,
       result,
     });
   } catch (error) {
+    console.log("BULK DELETE ERROR:", error);
+
     return resp.status(500).send({
       success: false,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
-
-// TASK STATS
-export const getTaskStats = async (req, resp) => {
-  try {
-    const db = await connection();
-    const collection = db.collection(collections.TODOS);
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const [total, completed, inprogress, todo, overdue] = await Promise.all([
-      collection.countDocuments({
-        userId: req.user.id,
-      }),
-
-      collection.countDocuments({
-        userId: req.user.id,
-        status: "completed",
-      }),
-
-      collection.countDocuments({
-        userId: req.user.id,
-        status: "inprogress",
-      }),
-
-      collection.countDocuments({
-        userId: req.user.id,
-        status: "todo",
-      }),
-
-      collection.countDocuments({
-        userId: req.user.id,
-        status: { $ne: "completed" },
-        dueDate: { $lt: today },
-      }),
-    ]);
-
-    return resp.status(200).send({
-      success: true,
-      stats: {
-        total,
-        completed,
-        inprogress,
-        todo,
-        overdue,
-      },
-    });
-  } catch (error) {
-    return resp.status(500).send({
-      success: false,
-      message: "Internal server error",
-      error: error.message,
+      message: "Failed to delete tasks",
     });
   }
 };

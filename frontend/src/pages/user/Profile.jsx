@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import fetchWithAuth from "../utils/fetchWithAuth";
+import fetchWithAuth from "../../utils/fetchWithAuth";
 
 const Profile = () => {
   const [user, setUser] = useState(null);

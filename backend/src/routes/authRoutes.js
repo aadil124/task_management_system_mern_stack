@@ -1,42 +1,44 @@
 import express from "express";
-import rateLimit from "express-rate-limit";
-import {
-  signup,
-  login,
-  verifyEmail,
-  forgotPassword,
-  resetPassword,
-  getProfile,
-  updateProfile,
-  changePassword,
-  resendVerificationEmail,
-} from "../controllers/authController.js";
-
 import verifyToken from "../middlewares/authMiddleware.js";
 import { upload } from "../config/cloudinary.js";
 
+// AUTH CONTROLLERS
+import {
+  signup,
+  verifyEmail,
+  resendVerificationEmail,
+} from "../controllers/auth/signupController.js";
+
+import { login } from "../controllers/auth/loginController.js";
+
+import {
+  forgotPassword,
+  resetPassword,
+  changePassword,
+} from "../controllers/auth/passwordController.js";
+
+import {
+  getProfile,
+  updateProfile,
+} from "../controllers/auth/profileController.js";
+
 const router = express.Router();
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: {
-    success: false,
-    message: "Too many requests. Try again later.",
-  },
-});
+/* PUBLIC ROUTES */
+router.post("/signup", signup);
+router.post("/login", login);
 
-// public
-router.post("/signup", authLimiter, signup);
-router.post("/login", authLimiter, login);
 router.get("/verify-email", verifyEmail);
-router.post("/forgot-password", authLimiter, forgotPassword);
-router.post("/reset-password", resetPassword);
-router.post("/resend-verification", authLimiter, resendVerificationEmail);
+router.post("/resend-verification", resendVerificationEmail);
 
-// protected
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+
+/* PROTECTED ROUTES */
 router.get("/profile", verifyToken, getProfile);
+
 router.put("/profile", verifyToken, upload.single("avatar"), updateProfile);
+
 router.put("/change-password", verifyToken, changePassword);
 
 export default router;
