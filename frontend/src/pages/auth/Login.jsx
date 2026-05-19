@@ -6,6 +6,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
   const navigate = useNavigate();
+  const [showResend, setShowResend] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -46,7 +47,13 @@ const Login = () => {
 
         navigate("/", { replace: true });
       } else {
-        toast.error(data.message || "Login failed.");
+        if (data.unverified) {
+          setShowResend(true);
+          toast.error("Please verify your email first.");
+        } else {
+          setShowResend(false);
+          toast.error(data.message || "Login failed.");
+        }
       }
     } catch {
       toast.error("Something went wrong!");
@@ -145,14 +152,16 @@ const Login = () => {
               Forgot password?
             </Link>
 
-            <button
-              type="button"
-              className="btn btn-link p-0 small text-decoration-none"
-              onClick={handleResendVerification}
-              disabled={resending}
-            >
-              {resending ? "Sending..." : "Resend verification"}
-            </button>
+            {showResend && (
+              <button
+                type="button"
+                className="btn btn-link p-0 small text-decoration-none"
+                onClick={handleResendVerification}
+                disabled={resending}
+              >
+                {resending ? "Sending..." : "Resend verification"}
+              </button>
+            )}
           </div>
 
           <button

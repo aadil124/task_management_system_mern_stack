@@ -52,9 +52,10 @@ export const login = async (req, resp) => {
     }
 
     if (!user.isVerified) {
-      return resp.status(403).send({
+      return resp.status(401).send({
         success: false,
         message: "Please verify your email first",
+        unverified: true,
       });
     }
 
