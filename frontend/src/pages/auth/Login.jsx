@@ -6,7 +6,6 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
   const navigate = useNavigate();
-  const [showResend, setShowResend] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -14,7 +13,6 @@ const Login = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -59,39 +57,6 @@ const Login = () => {
       toast.error("Something went wrong!");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResendVerification = async () => {
-    if (!formData.email.trim()) {
-      toast.error("Enter your email first.");
-      return;
-    }
-
-    setResending(true);
-
-    try {
-      const response = await fetch(`${BASE_URL}/auth/resend-verification`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success("Verification email sent. Please check inbox/spam.");
-      } else {
-        toast.error(data.message || "Unable to resend email.");
-      }
-    } catch {
-      toast.error("Something went wrong.");
-    } finally {
-      setResending(false);
     }
   };
 
@@ -151,17 +116,6 @@ const Login = () => {
             >
               Forgot password?
             </Link>
-
-            {showResend && (
-              <button
-                type="button"
-                className="btn btn-link p-0 small text-decoration-none"
-                onClick={handleResendVerification}
-                disabled={resending}
-              >
-                {resending ? "Sending..." : "Resend verification"}
-              </button>
-            )}
           </div>
 
           <button

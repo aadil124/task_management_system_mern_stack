@@ -10,7 +10,6 @@ import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/SignUp";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
-import VerifyEmail from "./pages/auth/VerifyEmail";
 
 import List from "./pages/tasks/List";
 import AddTask from "./pages/tasks/AddTask";
@@ -66,8 +65,6 @@ function App() {
               </PublicRoute>
             }
           />
-
-          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* PROTECTED ROUTES */}
           <Route

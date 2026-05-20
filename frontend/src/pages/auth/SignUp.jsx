@@ -58,7 +58,7 @@ const SignUp = () => {
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Account created! Please verify your email.");
+        toast.success("Account created successfully!");
         navigate("/login", { replace: true });
       } else {
         toast.error(data.message || "Signup failed.");
