@@ -51,14 +51,6 @@ export const login = async (req, resp) => {
       });
     }
 
-    if (!user.isVerified) {
-      return resp.status(401).send({
-        success: false,
-        message: "Please verify your email first",
-        unverified: true,
-      });
-    }
-
     const isPasswordMatch = await bcrypt.compare(password, user.password);
 
     if (!isPasswordMatch) {

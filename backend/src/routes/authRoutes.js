@@ -9,11 +9,7 @@ import {
 } from "../middlewares/rateLimiter.js";
 
 // AUTH CONTROLLERS
-import {
-  signup,
-  verifyEmail,
-  resendVerificationEmail,
-} from "../controllers/auth/signupController.js";
+import { signup } from "../controllers/auth/signupController.js";
 
 import { login } from "../controllers/auth/loginController.js";
 
@@ -33,10 +29,6 @@ const router = express.Router();
 /* PUBLIC ROUTES */
 router.post("/signup", authLimiter, signup);
 router.post("/login", loginLimiter, login);
-
-router.get("/verify-email", verifyEmail);
-
-router.post("/resend-verification", authLimiter, resendVerificationEmail);
 
 router.post("/forgot-password", passwordLimiter, forgotPassword);
 
