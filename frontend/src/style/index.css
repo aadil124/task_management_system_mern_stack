@@ -1,0 +1,28 @@
+/* React Big Calendar fixes */
+.rbc-month-view {
+  overflow: visible !important;
+}
+
+.rbc-row-content {
+  position: relative;
+  z-index: 5;
+  overflow: visible !important;
+}
+
+.rbc-row-segment {
+  padding: 2px !important;
+}
+
+.rbc-event {
+  border-radius: 10px !important;
+  padding: 4px 8px !important;
+  min-height: 28px !important;
+  display: flex !important;
+  align-items: center;
+}
+
+.rbc-event-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
