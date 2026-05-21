@@ -1,194 +1,117 @@
-import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  let user = null;
-
-  try {
-    user = JSON.parse(localStorage.getItem("user")) || null;
-  } catch {
-    user = null;
-  }
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
     toast.success("Logged out successfully");
+
     navigate("/login", { replace: true });
   };
 
   const avatarSrc =
     user?.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      user?.name || "User",
-    )}&background=0d6efd&color=fff`;
-
-  const isActive = (path) => location.pathname === path;
+      user?.name || "U",
+    )}&background=3b82f6&color=fff&size=64`;
 
   return (
-    <nav
-      className="navbar navbar-expand-lg bg-white shadow-sm sticky-top"
-      style={{
-        borderBottom: "1px solid #e9ecef",
-        zIndex: 1000,
-      }}
-    >
-      <div className="container">
-        {/* LOGO */}
-        <Link
-          className="navbar-brand fw-bold fs-4 text-primary"
-          to="/dashboard"
-        >
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+      <div className="container-fluid px-4">
+        <Link className="navbar-brand fw-bold fs-4" to="/">
           TaskFlow
         </Link>
 
-        {/* MOBILE TOGGLER */}
         <button
-          className="navbar-toggler border-0"
+          className="navbar-toggler"
           type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className="navbar-toggler-icon" />
         </button>
 
-        <div className={`collapse navbar-collapse ${menuOpen ? "show" : ""}`}>
+        <div className="collapse navbar-collapse" id="navbarNav">
           {user ? (
             <>
-              {/* CENTER NAV */}
-              <ul className="navbar-nav mx-auto align-items-lg-center">
+              <ul className="navbar-nav mx-auto gap-lg-2">
                 <li className="nav-item">
-                  <Link
-                    className={`nav-link fw-semibold ${
-                      isActive("/dashboard") ? "text-primary" : "text-dark"
-                    }`}
-                    to="/dashboard"
-                  >
+                  <NavLink to="/dashboard" className="nav-link fw-semibold">
                     Dashboard
-                  </Link>
+                  </NavLink>
                 </li>
 
                 <li className="nav-item">
-                  <Link
-                    className={`nav-link fw-semibold ${
-                      isActive("/") ? "text-primary" : "text-dark"
-                    }`}
-                    to="/"
-                  >
+                  <NavLink to="/" className="nav-link fw-semibold">
                     Tasks
-                  </Link>
+                  </NavLink>
                 </li>
 
                 <li className="nav-item">
-                  <Link
-                    className="nav-link fw-semibold text-dark"
-                    to="/dashboard"
-                  >
-                    Analytics
-                  </Link>
+                  <NavLink to="/board" className="nav-link fw-semibold">
+                    Board
+                  </NavLink>
                 </li>
 
                 <li className="nav-item">
-                  <span
-                    className="nav-link text-muted fw-semibold"
-                    style={{ cursor: "not-allowed" }}
-                  >
-                    Kanban
-                  </span>
+                  <NavLink to="/calendar" className="nav-link fw-semibold">
+                    Calendar
+                  </NavLink>
                 </li>
+
+                {/* <li className="nav-item">
+                  <NavLink to="/add-task" className="nav-link fw-semibold">
+                    Add Task
+                  </NavLink>
+                </li> */}
               </ul>
 
-              {/* RIGHT SECTION */}
-              <div className="d-flex align-items-center gap-3 flex-column flex-lg-row mt-3 mt-lg-0">
-                {/* ADD TASK BUTTON */}
-                <button
-                  className="btn btn-primary fw-semibold px-4"
-                  style={{
-                    borderRadius: "12px",
-                  }}
-                  onClick={() => navigate("/add-task")}
+              <div className="d-flex align-items-center gap-3">
+                <Link
+                  to="/profile"
+                  className="text-decoration-none d-flex align-items-center gap-2"
                 >
-                  + Add Task
-                </button>
-
-                {/* NOTIFICATION PLACEHOLDER */}
-                <button
-                  className="btn btn-light border rounded-circle"
-                  style={{
-                    width: "42px",
-                    height: "42px",
-                  }}
-                  disabled
-                  title="Notifications coming soon"
-                >
-                  🔔
-                </button>
-
-                {/* PROFILE */}
-                <div className="dropdown">
-                  <button
-                    className="btn btn-light border dropdown-toggle d-flex align-items-center gap-2"
-                    data-bs-toggle="dropdown"
+                  <img
+                    src={avatarSrc}
+                    alt="avatar"
+                    className="rounded-circle border border-2 border-white"
                     style={{
-                      borderRadius: "14px",
+                      width: "42px",
+                      height: "42px",
+                      objectFit: "cover",
                     }}
-                  >
-                    <img
-                      src={avatarSrc}
-                      alt="avatar"
-                      className="rounded-circle"
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <span className="fw-semibold d-none d-md-inline">
-                      {user.name}
-                    </span>
-                  </button>
+                  />
 
-                  <ul className="dropdown-menu dropdown-menu-end shadow border-0">
-                    <li>
-                      <Link className="dropdown-item" to="/profile">
-                        👤 Profile
-                      </Link>
-                    </li>
+                  <span className="text-white fw-semibold d-none d-md-inline">
+                    {user.name}
+                  </span>
+                </Link>
 
-                    <li>
-                      <button
-                        className="dropdown-item text-danger"
-                        onClick={handleLogout}
-                      >
-                        🚪 Logout
-                      </button>
-                    </li>
-                  </ul>
-                </div>
+                <button
+                  className="btn btn-light btn-sm fw-semibold px-3"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
               </div>
             </>
           ) : (
             <ul className="navbar-nav ms-auto">
               <li className="nav-item">
-                <Link className="nav-link fw-semibold" to="/login">
+                <Link className="nav-link" to="/login">
                   Login
                 </Link>
               </li>
 
               <li className="nav-item">
-                <Link
-                  className="btn btn-primary ms-lg-3 px-4"
-                  to="/signup"
-                  style={{
-                    borderRadius: "12px",
-                  }}
-                >
+                <Link className="nav-link" to="/signup">
                   Sign Up
                 </Link>
               </li>

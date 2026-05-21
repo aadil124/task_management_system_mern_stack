@@ -10,15 +10,14 @@ import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/SignUp";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
-
 import List from "./pages/tasks/List";
 import AddTask from "./pages/tasks/AddTask";
 import EditTask from "./pages/tasks/EditTask";
 import Dashboard from "./pages/tasks/Dashboard";
-
 import Profile from "./pages/user/Profile";
-
 import NotFound from "./components/NotFound";
+import KanbanBoard from "./components/kanban/KanbanBoard";
+import CalendarView from "./components/calendar/CalendarView";
 
 function App() {
   return (
@@ -68,19 +67,37 @@ function App() {
 
           {/* PROTECTED ROUTES */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
-                <List />
+                <Dashboard />
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/dashboard"
+            path="/board"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <KanbanBoard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute>
+                <CalendarView />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <List />
               </ProtectedRoute>
             }
           />

@@ -20,18 +20,18 @@ const TaskForm = ({
   const [newSubtask, setNewSubtask] = useState("");
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        title: initialData.title || "",
-        description: initialData.description || "",
-        priority: initialData.priority || "medium",
-        status: initialData.status || "todo",
-        dueDate: initialData.dueDate
-          ? new Date(initialData.dueDate).toISOString().split("T")[0]
-          : "",
-        subtasks: initialData.subtasks || [],
-      });
-    }
+    if (!initialData) return;
+
+    setFormData({
+      title: initialData.title || "",
+      description: initialData.description || "",
+      priority: initialData.priority || "medium",
+      status: initialData.status || "todo",
+      dueDate: initialData.dueDate
+        ? new Date(initialData.dueDate).toISOString().split("T")[0]
+        : "",
+      subtasks: initialData.subtasks || [],
+    });
   }, [initialData]);
 
   const handleChange = (e) => {
@@ -127,10 +127,9 @@ const TaskForm = ({
       }}
     >
       <div className="card-body p-4 p-md-5">
-        {/* HEADER */}
         <div className="mb-4">
           <h2 className="fw-bold mb-2">
-            {initialData ? "Edit Task" : "Create New Task"}
+            {initialData?.title ? "Edit Task" : "Create New Task"}
           </h2>
 
           <p className="text-muted mb-0">
@@ -139,7 +138,6 @@ const TaskForm = ({
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* TITLE */}
           <div className="mb-4">
             <label className="form-label fw-semibold">Task Title</label>
 
@@ -158,7 +156,6 @@ const TaskForm = ({
             />
           </div>
 
-          {/* DESCRIPTION */}
           <div className="mb-4">
             <label className="form-label fw-semibold">Description</label>
 
@@ -177,7 +174,6 @@ const TaskForm = ({
             />
           </div>
 
-          {/* GRID */}
           <div className="row">
             <div className="col-md-4 mb-4">
               <label className="form-label fw-semibold">Priority</label>
@@ -234,7 +230,6 @@ const TaskForm = ({
             </div>
           </div>
 
-          {/* SUBTASKS */}
           <div
             className="card border-0 bg-light mb-4"
             style={{
@@ -316,7 +311,6 @@ const TaskForm = ({
             </div>
           </div>
 
-          {/* ACTIONS */}
           <div className="d-flex gap-3 flex-wrap">
             <button
               type="submit"

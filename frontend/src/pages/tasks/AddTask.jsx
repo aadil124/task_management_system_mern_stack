@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import fetchWithAuth from "../../utils/fetchWithAuth";
@@ -7,8 +7,11 @@ import TaskForm from "../../components/tasks/TaskForm";
 
 const AddTask = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(false);
+
+  const prefilledDate = searchParams.get("date") || "";
 
   const handleUnauthorized = () => {
     localStorage.removeItem("token");
@@ -24,6 +27,9 @@ const AddTask = () => {
 
       const response = await fetchWithAuth("/api/add-task", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(taskData),
       });
 
@@ -55,6 +61,9 @@ const AddTask = () => {
       }}
     >
       <TaskForm
+        initialData={{
+          dueDate: prefilledDate,
+        }}
         onSubmit={handleCreateTask}
         loading={loading}
         submitLabel="Create Task"
