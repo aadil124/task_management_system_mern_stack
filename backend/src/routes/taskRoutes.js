@@ -8,6 +8,7 @@ import {
   updateTask,
   deleteTask,
   deleteMultipleTasks,
+  updateTaskStatus,
 } from "../controllers/tasks/taskCrudController.js";
 
 import {
@@ -29,6 +30,7 @@ router.post("/add-task", addTask);
 router.get("/task-list", getTaskList);
 router.get("/task/:id", getTaskById);
 router.put("/update/:id", updateTask);
+router.patch("/:id/status", updateTaskStatus);
 router.delete("/delete/:id", deleteTask);
 router.delete("/delete-multiple", deleteMultipleTasks);
 

@@ -402,3 +402,86 @@ export const deleteMultipleTasks = async (req, resp) => {
     });
   }
 };
+
+// UPDATE TASK STATUS (KANBAN)
+export const updateTaskStatus = async (req, resp) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!ObjectId.isValid(id)) {
+      return resp.status(400).send({
+        success: false,
+        message: "Invalid task ID",
+      });
+    }
+
+    const allowedStatus = ["todo", "inprogress", "completed"];
+
+    if (!allowedStatus.includes(status)) {
+      return resp.status(400).send({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    const db = await connection();
+    const collection = db.collection(collections.TODOS);
+
+    const task = await collection.findOne({
+      _id: new ObjectId(id),
+      userId: req.user.id,
+    });
+
+    if (!task) {
+      return resp.status(404).send({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    // STRICT SUBTASK RULE
+    if (
+      status === "completed" &&
+      task.subtasks?.length > 0 &&
+      task.subtasks.some((subtask) => !subtask.completed)
+    ) {
+      return resp.status(400).send({
+        success: false,
+        message: "Complete all subtasks before marking task as completed",
+      });
+    }
+
+    const result = await collection.updateOne(
+      {
+        _id: new ObjectId(id),
+        userId: req.user.id,
+      },
+      {
+        $set: {
+          status,
+          updatedAt: new Date(),
+        },
+      },
+    );
+
+    if (!result.matchedCount) {
+      return resp.status(404).send({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    return resp.status(200).send({
+      success: true,
+      message: "Task status updated successfully",
+    });
+  } catch (error) {
+    console.log("UPDATE TASK STATUS ERROR:", error);
+
+    return resp.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
